@@ -110,6 +110,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
             $set('name', $v['db_name']);
             $set('user', $v['db_user']);
             $set('pass', $v['db_pass']);
+            $hostName = strtolower(explode(':', (string)($_SERVER['HTTP_HOST'] ?? 'localhost'))[0]);
+            $isLocal = in_array($hostName, ['localhost', '127.0.0.1', '::1'], true) || str_ends_with($hostName, '.test') || str_ends_with($hostName, '.local');
+            if (!$isLocal) {   // روی هاست واقعی نمایش خطاها خاموش شود
+                $cfg = preg_replace("/('debug'\\s*=>\\s*)true/", '${1}false', $cfg, 1);
+            }
             $cfg = preg_replace("/('port'\\s*=>\\s*)\\d+/", '${1}' . (int)$v['db_port'], $cfg, 1);
             if (file_put_contents(ROOT . '/config/config.php', $cfg) === false) {
                 throw new RuntimeException('نوشتن config/config.php ممکن نشد؛ دسترسی پوشه config را بررسی کنید.');
