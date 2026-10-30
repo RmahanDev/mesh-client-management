@@ -31,6 +31,16 @@ $greet = $hour < 12 ? 'صبح بخیر' : ($hour < 17 ? 'روز بخیر' : 'ع�
     <?php if ($counts['tickets'] !== null): ?><div class="col-6 col-xl-3"><a href="<?= url('support') ?>" class="stat-card d-block text-warning"><span class="stat-icon g-orange"><i class="bi bi-ticket-detailed"></i></span><div class="stat-value text-body"><?= num($counts['tickets']) ?></div><div class="stat-label">تیکت باز</div></a></div><?php endif; ?>
 </div>
 
+<?php if ($myShares['rows']): ?>
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center"><span><i class="bi bi-pie-chart me-1 text-success"></i>جمع سهم من از <?= fa_digits(count($myShares['rows'])) ?> پروژه</span><a href="<?= url('shares') ?>" class="small">جزئیات</a></div>
+    <div class="card-body">
+        <div class="kv"><span class="k">سهم من تا امروز</span><span class="v text-success fw-bold"><?= money($myShares['total']) ?></span></div>
+        <div class="kv"><span class="k">با دریافت کامل قراردادها</span><span class="v"><?= money($myShares['expected']) ?></span></div>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php $itInbox = \App\Models\InternalTicket::inbox(5); if ($itInbox): ?>
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center"><span><i class="bi bi-chat-square-text me-1 text-primary"></i>تیکت‌های داخلی روی میز شما (<?= fa_digits(\App\Models\InternalTicket::pendingCount()) ?>)</span><a href="<?= url('internal') ?>" class="small">همه</a></div>

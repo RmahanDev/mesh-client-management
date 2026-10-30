@@ -42,6 +42,38 @@ class Project
         return $out;
     }
 
+    /** سهم از سود؛ در صورت زیان صفر است */
+    public static function shareAmount(int $profit, $percent): int
+    {
+        return intdiv(max(0, $profit) * (int)round((float)$percent * 100), 10000);
+    }
+
+    /** سود خالص در صورت دریافت کامل قرارداد */
+    public static function expectedProfit(int $totalAmount, array $finance): int
+    {
+        return $totalAmount + $finance['renewals_paid'] - $finance['expenses'];
+    }
+
+    /** سهم‌های تعریف‌شده یک ادمین در پروژه‌هایی که سهم‌بندی‌شان فعال است */
+    public static function myShares(int $adminId): array
+    {
+        $rows = DB::all("SELECT s.percent, p.id, p.title, p.status, p.total_amount, CONCAT(c.first_name,' ',c.last_name) AS customer
+                         FROM project_shares s JOIN projects p ON p.id = s.project_id JOIN customers c ON c.id = p.customer_id
+                         WHERE s.admin_id = ? AND p.shares_enabled = 1 ORDER BY p.id DESC", [$adminId]);
+        $finance = self::finance(array_column($rows, 'id'));
+        $total = $expected = 0;
+        foreach ($rows as &$r) {
+            $f = $finance[$r['id']];
+            $r['profit'] = $f['profit'];
+            $r['amount'] = self::shareAmount($f['profit'], $r['percent']);
+            $r['expected_amount'] = self::shareAmount(self::expectedProfit((int)$r['total_amount'], $f), $r['percent']);
+            $total += $r['amount'];
+            $expected += $r['expected_amount'];
+        }
+        unset($r);
+        return ['rows' => $rows, 'total' => $total, 'expected' => $expected];
+    }
+
     public static function categories(array $ids): array
     {
         $out = array_fill_keys($ids, []);

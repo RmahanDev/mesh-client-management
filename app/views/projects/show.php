@@ -50,6 +50,7 @@ $kindLabel = ['single' => 'یک‌جا', 'stage' => 'مرحله', 'prepayment' =
     <?php if ($canFin): ?>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-payments"><i class="bi bi-calendar2-check me-1"></i>پرداخت‌ها <span class="badge"><?= fa_digits(count($payments)) ?></span></button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-expenses"><i class="bi bi-tools me-1"></i>هزینه‌ها <span class="badge"><?= fa_digits(count($expenses)) ?></span></button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-shares"><i class="bi bi-pie-chart me-1"></i>سهم‌بندی</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-guarantee"><i class="bi bi-shield-check me-1"></i>سفته و ضامن</button></li>
     <?php endif; ?>
     <?php if ($canSup): ?>
@@ -85,6 +86,13 @@ $kindLabel = ['single' => 'یک‌جا', 'stage' => 'مرحله', 'prepayment' =
                     <div class="kv"><span class="k">پایان پشتیبانی</span><span class="v"><?= jdate($p['support_end']) ?></span></div>
                     <div class="kv"><span class="k">ثبت شده در</span><span class="v"><?= jdate($p['created_at'], true) ?></span></div>
                 </div></div>
+                <?php if (!empty($myPercent)): ?>
+                <div class="card mb-3"><div class="card-header small"><i class="bi bi-pie-chart me-1 text-success"></i>سهم من از این پروژه</div><div class="card-body">
+                    <div class="kv"><span class="k">درصد من</span><span class="v"><?= percent_label($myPercent) ?></span></div>
+                    <div class="kv"><span class="k">سهم من تا امروز</span><span class="v text-success"><?= money(\App\Models\Project::shareAmount($f['profit'], $myPercent)) ?></span></div>
+                    <div class="kv"><span class="k">با دریافت کامل قرارداد</span><span class="v"><?= money(\App\Models\Project::shareAmount($expectedProfit, $myPercent)) ?></span></div>
+                </div></div>
+                <?php endif; ?>
                 <?php if ($logs): ?>
                 <div class="card"><div class="card-header small">تاریخچه</div><div class="card-body small" style="max-height:260px;overflow:auto">
                     <?php foreach ($logs as $l): ?><div class="timeline-item"><div class="fw-semibold"><?= e($l['details'] ?: $l['action']) ?></div><div class="text-muted"><?= e($l['name'] ?? '—') ?> · <?= jdate($l['created_at'], true) ?></div></div><?php endforeach; ?>
@@ -193,6 +201,9 @@ $kindLabel = ['single' => 'یک‌جا', 'stage' => 'مرحله', 'prepayment' =
             </div>
         </div>
     </div>
+
+    <!-- سهم‌بندی -->
+    <div class="tab-pane fade" id="tab-shares"><?php require __DIR__ . '/_shares.php'; ?></div>
 
     <!-- سفته و ضامن -->
     <div class="tab-pane fade" id="tab-guarantee">

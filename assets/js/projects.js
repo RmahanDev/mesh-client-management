@@ -163,3 +163,28 @@
         if (t) document.querySelector(t.dataset.toggleBox)?.classList.toggle('d-none', !t.checked);
     });
 })();
+
+/* سهم‌بندی سود پروژه: محاسبه زنده مبلغ هر نفر */
+(function () {
+    const form = document.getElementById('sharesForm');
+    if (!form) return;
+    const share = (base, pct) => Math.floor(base * Math.round(pct * 100) / 10000);
+    const pctLabel = n => MM.fa(String(Math.round(n * 100) / 100)) + '٪';
+    function update() {
+        let sum = 0;
+        form.querySelectorAll('[data-share-row]').forEach(row => {
+            const raw = MM.en(row.querySelector('[name="share_percent[]"]').value).replace(/[٫\/]/g, '.');
+            const pct = parseFloat(raw) || 0;
+            sum += pct;
+            row.querySelector('[data-share-amount]').textContent = MM.money(share(+form.dataset.base, pct));
+            row.querySelector('[data-share-expected]').textContent = MM.money(share(+form.dataset.expected, pct));
+        });
+        const sumEl = form.querySelector('[data-share-sum]');
+        sumEl.textContent = pctLabel(sum);
+        sumEl.classList.toggle('text-danger', sum > 100);
+        form.querySelector('[data-share-left]').textContent = pctLabel(100 - sum);
+    }
+    form.addEventListener('input', update);
+    form.addEventListener('click', e => { if (e.target.closest('[data-repeater-remove],[data-repeater-add]')) setTimeout(update); });
+    update();
+})();

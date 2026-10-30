@@ -47,6 +47,7 @@ class DashboardController extends Controller
         if (Auth::can('projects')) {
             $d['recent'] = DB::all("SELECT p.id, p.title, p.status, p.total_amount, p.created_at, CONCAT(c.first_name,' ',c.last_name) AS customer FROM projects p JOIN customers c ON c.id=p.customer_id ORDER BY p.id DESC LIMIT 6");
         }
+        $d['myShares'] = \App\Models\Project::myShares((int)Auth::id());
         $this->render('dashboard/index', $d);
     }
 }

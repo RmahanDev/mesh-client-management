@@ -94,6 +94,13 @@ class ProjectsController extends Controller
             $data['renewals'] = DB::all('SELECT * FROM support_renewals WHERE project_id = ? ORDER BY start_date DESC', [$id]);
             $data['tickets'] = DB::all('SELECT t.*, (SELECT COUNT(*) FROM ticket_replies r WHERE r.ticket_id = t.id) AS replies FROM tickets t WHERE project_id = ? ORDER BY id DESC', [$id]);
         }
+        $data['expectedProfit'] = Project::expectedProfit((int)$p['total_amount'], $data['finance']);
+        if (Auth::can('finance')) {
+            $data['shares'] = DB::all('SELECT admin_id, percent FROM project_shares WHERE project_id = ? ORDER BY percent DESC, admin_id', [$id]);
+            $data['shareAdmins'] = DB::all('SELECT id, name, is_active FROM admins WHERE is_active = 1 OR id IN (SELECT admin_id FROM project_shares WHERE project_id = ?) ORDER BY name', [$id]);
+        } elseif ($p['shares_enabled']) {
+            $data['myPercent'] = DB::value('SELECT percent FROM project_shares WHERE project_id = ? AND admin_id = ?', [$id, Auth::id()]);
+        }
         $data['logs'] = DB::all('SELECT l.*, a.name FROM activity_log l LEFT JOIN admins a ON a.id = l.admin_id WHERE l.entity_type = ? AND l.entity_id = ? ORDER BY l.id DESC LIMIT 20', ['project', $id]);
         $this->render('projects/show', $data);
     }
@@ -229,6 +236,49 @@ class ProjectsController extends Controller
         });
         $this->log('schedule', 'project', (int)$p['id'], 'بازسازی برنامه پرداخت');
         json_ok('برنامه پرداخت به‌روزرسانی شد');
+    }
+
+    /** ذخیره سهم‌بندی سود پروژه؛ با خاموش کردن، سهم‌ها حفظ ولی نمایش داده نمی‌شوند */
+    public function shares(): void
+    {
+        $this->requirePost();
+        $this->authorize('finance', Auth::MANAGE);
+        $p = $this->findOr404('projects', input_int('id'));
+        $id = (int)$p['id'];
+        $enabled = input('shares_enabled') ? 1 : 0;
+        $rows = [];
+        if ($enabled) {
+            $hundredths = 0;
+            foreach ((array)($_POST['share_admin'] ?? []) as $i => $adminId) {
+                $adminId = (int)$adminId;
+                $raw = str_replace(['٫', '/'], '.', to_en_digits(trim((string)($_POST['share_percent'][$i] ?? ''))));
+                if (!$adminId || !DB::value('SELECT id FROM admins WHERE id = ? AND (is_active = 1 OR id IN (SELECT admin_id FROM project_shares WHERE project_id = ?))', [$adminId, $id])) {
+                    json_error('برای هر ردیف یک ادمین معتبر انتخاب کنید');
+                }
+                if (isset($rows[$adminId])) {
+                    json_error('هر ادمین فقط یک بار می‌تواند در سهم‌بندی باشد');
+                }
+                if (!preg_match('/^\d{1,3}(\.\d{1,2})?$/', $raw) || (float)$raw <= 0) {
+                    json_error('درصد سهم باید عددی بزرگ‌تر از صفر با حداکثر دو رقم اعشار باشد');
+                }
+                $rows[$adminId] = $raw;
+                $hundredths += (int)round((float)$raw * 100);
+            }
+            if ($hundredths > 10000) {
+                json_error('جمع درصدها نمی‌تواند بیشتر از ۱۰۰ باشد');
+            }
+        }
+        DB::transaction(function () use ($id, $enabled, $rows) {
+            DB::update('projects', ['shares_enabled' => $enabled, 'updated_at' => now()], 'id = ?', [$id]);
+            if ($enabled) {
+                DB::delete('project_shares', 'project_id = ?', [$id]);
+                foreach ($rows as $adminId => $percent) {
+                    DB::insert('project_shares', ['project_id' => $id, 'admin_id' => $adminId, 'percent' => $percent, 'created_at' => now()]);
+                }
+            }
+        });
+        $this->log('shares', 'project', $id, $enabled ? 'به‌روزرسانی سهم‌بندی پروژه' : 'غیرفعال کردن سهم‌بندی پروژه');
+        json_ok('سهم‌بندی ذخیره شد');
     }
 
     public function delete(): void

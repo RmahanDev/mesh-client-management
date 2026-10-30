@@ -15,6 +15,7 @@ $overdue = Auth::can('finance') ? (int)\App\Core\DB::value("SELECT COUNT(*) FROM
 $nav = [
     ['اصلی', [
         ['dashboard', 'داشبورد', 'bi-grid-1x2', null, 0],
+        ['shares', 'سهم من', 'bi-pie-chart', null, 0],
     ]],
     ['مدیریت', [
         ['customers', 'مشتریان', 'bi-people', 'customers', 0],

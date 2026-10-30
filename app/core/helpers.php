@@ -168,6 +168,12 @@ function money_plain($amount): string
     return fa_digits(number_format((int)$amount)) . ' تومان';
 }
 
+/** نمایش درصد با حذف صفرهای اضافه اعشار */
+function percent_label($percent): string
+{
+    return fa_digits(rtrim(rtrim(number_format((float)$percent, 2, '.', ''), '0'), '.')) . '٪';
+}
+
 function num($n): string
 {
     return fa_digits(number_format((int)$n));

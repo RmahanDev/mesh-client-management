@@ -113,6 +113,7 @@ CREATE TABLE `projects` (
   `support_months` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
   `support_start` DATE DEFAULT NULL,
   `support_end` DATE DEFAULT NULL,
+  `shares_enabled` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'سهم‌بندی سود فعال است',
   `created_by` INT UNSIGNED DEFAULT NULL,
   `created_at` DATETIME NOT NULL,
   `updated_at` DATETIME DEFAULT NULL,
@@ -366,6 +367,18 @@ CREATE TABLE `notification_reads` (
   PRIMARY KEY (`notification_id`, `admin_id`),
   CONSTRAINT `fk_nr_notif` FOREIGN KEY (`notification_id`) REFERENCES `notifications` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_nr_admin` FOREIGN KEY (`admin_id`) REFERENCES `admins` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS `project_shares`;
+CREATE TABLE `project_shares` (
+  `project_id` INT UNSIGNED NOT NULL,
+  `admin_id` INT UNSIGNED NOT NULL,
+  `percent` DECIMAL(5,2) NOT NULL COMMENT 'درصد از سود خالص پروژه',
+  `created_at` DATETIME NOT NULL,
+  PRIMARY KEY (`project_id`, `admin_id`),
+  KEY `idx_share_admin` (`admin_id`),
+  CONSTRAINT `fk_share_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_share_admin` FOREIGN KEY (`admin_id`) REFERENCES `admins` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS `settings`;
