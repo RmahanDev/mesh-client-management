@@ -1,5 +1,5 @@
 <?php defined('APP_ROOT') or exit;
-$icon = ['payment_due' => ['bi-alarm', 'g-blue'], 'payment_overdue' => ['bi-exclamation-octagon', 'g-orange'], 'support_ending' => ['bi-hourglass-split', 'g-teal'], 'internal_ticket' => ['bi-chat-square-text', 'g-blue']]; ?>
+$icon = ['payment_due' => ['bi-alarm', 'g-blue'], 'payment_overdue' => ['bi-exclamation-octagon', 'g-orange'], 'support_ending' => ['bi-hourglass-split', 'g-teal'], 'internal_ticket' => ['bi-chat-square-text', 'g-blue'], 'share' => ['bi-pie-chart', 'g-teal']]; ?>
 <div class="row justify-content-center"><div class="col-xl-8">
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center"><span>همه اعلان‌ها</span>

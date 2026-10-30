@@ -55,6 +55,7 @@ $kindLabel = ['single' => 'یک‌جا', 'stage' => 'مرحله', 'prepayment' =
     <?php if ($canSup): ?>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-support"><i class="bi bi-headset me-1"></i>پشتیبانی <span class="badge"><?= fa_digits(count($tickets)) ?></span></button></li>
     <?php endif; ?>
+    <?php if (Auth::can('finance')): ?><li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-shares"><i class="bi bi-pie-chart me-1"></i>سهم‌بندی<?php if ($p['profit_sharing']): ?> <span class="badge"><?= fa_digits(count($sh['rows'])) ?></span><?php endif; ?></button></li><?php endif; ?>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-files"><i class="bi bi-paperclip me-1"></i>پیوست‌ها</button></li>
 </ul>
 
@@ -308,6 +309,77 @@ $kindLabel = ['single' => 'یک‌جا', 'stage' => 'مرحله', 'prepayment' =
     <?php endif; ?>
 
     <!-- پیوست‌ها -->
+    <?php if (Auth::can('finance')): $canShM = Auth::canManage('projects'); ?>
+    <!-- سهم‌بندی سود -->
+    <div class="tab-pane fade" id="tab-shares">
+        <div class="card">
+            <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                <span><i class="bi bi-pie-chart me-1 text-primary"></i>سهم‌بندی سود پروژه</span>
+                <form class="ajax-form d-flex align-items-center gap-2" method="post" action="<?= url('shares/toggle') ?>"><?= csrf_field() ?>
+                    <input type="hidden" name="project_id" value="<?= $p['id'] ?>">
+                    <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" name="enabled" value="1" id="shEnable" <?= $p['profit_sharing'] ? 'checked' : '' ?> <?= $canShM ? '' : 'disabled' ?> onchange="this.form.requestSubmit()"><label class="form-check-label" for="shEnable">فعال</label></div>
+                </form>
+            </div>
+            <?php if (!$p['profit_sharing']): ?>
+                <div class="empty-state"><i class="bi bi-pie-chart"></i>سهم‌بندی برای این پروژه فعال نیست<?= $canShM ? '؛ با کلید بالا فعال کنید' : '' ?></div>
+            <?php else: ?>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-6 col-md-3"><div class="small text-muted">دریافتی</div><div class="fw-bold"><?= money($f['income']) ?></div></div>
+                    <div class="col-6 col-md-3"><div class="small text-muted">هزینه ابزارها</div><div class="fw-bold"><?= money($f['expenses']) ?></div></div>
+                    <div class="col-6 col-md-3"><div class="small text-muted">سود قابل تقسیم</div><div class="fw-bold text-success"><?= money($sh['base']) ?></div></div>
+                    <div class="col-6 col-md-3"><div class="small text-muted">درصد تخصیص‌یافته</div><div class="fw-bold"><?= fa_digits(rtrim(rtrim(number_format($sh['percent'], 2), '0'), '.')) ?>٪ <span class="small text-muted">(باقی‌مانده <?= fa_digits(rtrim(rtrim(number_format(max(0, 100 - $sh['percent']), 2), '0'), '.')) ?>٪)</span></div></div>
+                </div>
+                <form class="ajax-form" method="post" action="<?= url('shares/save') ?>"><?= csrf_field() ?>
+                    <input type="hidden" name="project_id" value="<?= $p['id'] ?>">
+                    <div class="table-responsive"><table class="table align-middle mb-2">
+                        <thead><tr><th>ادمین</th><th style="width:140px">درصد</th><th>مبلغ سهم</th><th style="width:50px"></th></tr></thead>
+                        <tbody id="shareRows">
+                        <?php foreach ($sh['rows'] as $r): ?>
+                            <tr><td><select name="admin_id[]" class="form-select" <?= $canShM ? '' : 'disabled' ?>><?php foreach ($shareAdmins as $a): ?><option value="<?= $a['id'] ?>" <?= $a['id'] == $r['admin_id'] ? 'selected' : '' ?>><?= e($a['name']) ?></option><?php endforeach; ?></select></td>
+                                <td><input type="text" name="percent[]" class="form-control ltr" inputmode="decimal" value="<?= e(rtrim(rtrim(number_format((float)$r['percent'], 2, '.', ''), '0'), '.')) ?>" data-share-pct <?= $canShM ? '' : 'readonly' ?>></td>
+                                <td class="fw-semibold text-success text-nowrap" data-share-amt><?= money($r['amount']) ?></td>
+                                <td><?php if ($canShM): ?><button type="button" class="btn btn-sm btn-soft-danger btn-icon" data-rm-share><i class="bi bi-x-lg"></i></button><?php endif; ?></td></tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table></div>
+                    <?php if ($canShM): ?>
+                    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                        <button type="button" class="btn btn-sm btn-soft" data-add-share><i class="bi bi-plus-lg"></i> افزودن نفر</button>
+                        <div class="small" data-share-sum></div>
+                        <button class="btn btn-grad"><i class="bi bi-check2 me-1"></i>ذخیره سهم‌بندی</button>
+                    </div>
+                    <?php endif; ?>
+                </form>
+                <template id="shareRowTpl"><tr><td><select name="admin_id[]" class="form-select"><option value="">انتخاب ادمین...</option><?php foreach ($shareAdmins as $a): ?><option value="<?= $a['id'] ?>"><?= e($a['name']) ?></option><?php endforeach; ?></select></td>
+                    <td><input type="text" name="percent[]" class="form-control ltr" inputmode="decimal" data-share-pct></td><td class="fw-semibold text-success text-nowrap" data-share-amt>۰</td>
+                    <td><button type="button" class="btn btn-sm btn-soft-danger btn-icon" data-rm-share><i class="bi bi-x-lg"></i></button></td></tr></template>
+                <script>
+                (function () {
+                    const base = <?= (int)$sh['base'] ?>, box = document.getElementById('shareRows'), sum = document.querySelector('[data-share-sum]');
+                    function calc() {
+                        let t = 0;
+                        box.querySelectorAll('tr').forEach(tr => {
+                            const v = parseFloat(MM.en(tr.querySelector('[data-share-pct]').value).replace('٫', '.')) || 0;
+                            t += v;
+                            tr.querySelector('[data-share-amt]').textContent = MM.money(Math.floor(base * v / 100));
+                        });
+                        if (sum) { sum.textContent = 'جمع درصدها: ' + MM.fa(Math.round(t * 100) / 100) + '٪'; sum.className = 'small ' + (t > 100.001 ? 'text-danger' : 'text-muted'); }
+                    }
+                    document.addEventListener('input', e => { if (e.target.matches('[data-share-pct]')) calc(); });
+                    document.addEventListener('click', e => {
+                        if (e.target.closest('[data-add-share]')) { box.appendChild(document.getElementById('shareRowTpl').content.firstElementChild.cloneNode(true)); calc(); }
+                        if (e.target.closest('[data-rm-share]')) { e.target.closest('tr').remove(); calc(); }
+                    });
+                    calc();
+                })();
+                </script>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <div class="tab-pane fade" id="tab-files">
         <div class="card"><div class="card-body">
             <?php $attEntity = 'project'; $attId = (int)$p['id']; $attManage = $canManage; $attTitle = 'پیوست پروژه'; require APP_ROOT . '/app/views/partials/attachments.php'; ?>

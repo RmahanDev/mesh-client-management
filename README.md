@@ -16,7 +16,7 @@ phpMyAdmin → **Import** → `database/schema.sql`، سپس `config/config.samp
 
 ### ارتقا از نسخه قبلی
 
-فایل‌های `database/migrations/` را به ترتیب روی دیتابیس موجود اجرا کنید (مثلاً `002_internal_tickets.sql` برای تیکت داخلی).
+فایل‌های `database/migrations/` را به ترتیب روی دیتابیس موجود اجرا کنید (`002_internal_tickets.sql` تیکت داخلی، `003_profit_sharing.sql` سهم‌بندی سود).
 
 ## ساختار
 

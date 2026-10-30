@@ -94,6 +94,10 @@ class ProjectsController extends Controller
             $data['renewals'] = DB::all('SELECT * FROM support_renewals WHERE project_id = ? ORDER BY start_date DESC', [$id]);
             $data['tickets'] = DB::all('SELECT t.*, (SELECT COUNT(*) FROM ticket_replies r WHERE r.ticket_id = t.id) AS replies FROM tickets t WHERE project_id = ? ORDER BY id DESC', [$id]);
         }
+        if (Auth::can('finance')) {
+            $data['sh'] = Project::shares($id, $data['finance']['profit']);
+            $data['shareAdmins'] = DB::all('SELECT id, name FROM admins WHERE is_active = 1 ORDER BY name');
+        }
         $data['logs'] = DB::all('SELECT l.*, a.name FROM activity_log l LEFT JOIN admins a ON a.id = l.admin_id WHERE l.entity_type = ? AND l.entity_id = ? ORDER BY l.id DESC LIMIT 20', ['project', $id]);
         $this->render('projects/show', $data);
     }

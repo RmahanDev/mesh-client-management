@@ -31,6 +31,9 @@ $greet = $hour < 12 ? 'صبح بخیر' : ($hour < 17 ? 'روز بخیر' : 'ع�
     <?php if ($counts['tickets'] !== null): ?><div class="col-6 col-xl-3"><a href="<?= url('support') ?>" class="stat-card d-block text-warning"><span class="stat-icon g-orange"><i class="bi bi-ticket-detailed"></i></span><div class="stat-value text-body"><?= num($counts['tickets']) ?></div><div class="stat-label">تیکت باز</div></a></div><?php endif; ?>
 </div>
 
+<?php $myShares = \App\Models\Project::sharesOf((int)Auth::id()); if ($myShares): ?>
+<div class="row g-3 mb-3"><div class="col-md-6 col-xl-4"><a href="<?= url('shares') ?>" class="stat-card d-block text-success"><span class="stat-icon g-teal"><i class="bi bi-pie-chart"></i></span><div class="stat-value text-body"><?= money(array_sum(array_column($myShares, 'amount')), false) ?></div><div class="stat-label">جمع سهم من از <?= fa_digits(count($myShares)) ?> پروژه (تومان)</div></a></div></div>
+<?php endif; ?>
 <?php $itInbox = \App\Models\InternalTicket::inbox(5); if ($itInbox): ?>
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center"><span><i class="bi bi-chat-square-text me-1 text-primary"></i>تیکت‌های داخلی روی میز شما (<?= fa_digits(\App\Models\InternalTicket::pendingCount()) ?>)</span><a href="<?= url('internal') ?>" class="small">همه</a></div>

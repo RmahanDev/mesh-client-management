@@ -92,4 +92,34 @@ class Project
         return DB::all("SELECT p.id, p.title, CONCAT(c.first_name,' ',c.last_name) AS customer
                         FROM projects p JOIN customers c ON c.id = p.customer_id ORDER BY p.id DESC");
     }
+
+    /** سهم‌های ثبت‌شده یک پروژه همراه با مبلغ محاسبه‌شده از سود: [rows, base, totalPercent] */
+    public static function shares(int $projectId, int $profit): array
+    {
+        $base = max(0, $profit);
+        $rows = DB::all('SELECT s.*, a.name, a.is_active FROM project_shares s JOIN admins a ON a.id = s.admin_id WHERE s.project_id = ? ORDER BY s.percent DESC, s.id', [$projectId]);
+        $total = 0.0;
+        foreach ($rows as &$r) {
+            $r['amount'] = (int)floor($base * (float)$r['percent'] / 100);
+            $total += (float)$r['percent'];
+        }
+        return ['rows' => $rows, 'base' => $base, 'percent' => $total];
+    }
+
+    /** سهم‌های یک ادمین از همه پروژه‌های دارای سهم‌بندی فعال */
+    public static function sharesOf(int $adminId): array
+    {
+        $rows = DB::all("SELECT s.percent, p.id AS project_id, p.title, p.status, CONCAT(c.first_name,' ',c.last_name) AS customer
+                         FROM project_shares s JOIN projects p ON p.id = s.project_id AND p.profit_sharing = 1
+                         JOIN customers c ON c.id = p.customer_id WHERE s.admin_id = ? ORDER BY p.id DESC", [$adminId]);
+        $fin = self::finance(array_map('intval', array_column($rows, 'project_id')));
+        foreach ($rows as &$r) {
+            $f = $fin[$r['project_id']];
+            $r['income'] = $f['income'];
+            $r['expenses'] = $f['expenses'];
+            $r['profit'] = $f['profit'];
+            $r['amount'] = (int)floor(max(0, $f['profit']) * (float)$r['percent'] / 100);
+        }
+        return $rows;
+    }
 }

@@ -75,7 +75,7 @@ class Auth
 
     public static function level(string $section): int
     {
-        if (self::isSuper() || ($section === 'internal' && self::check())) {
+        if (self::isSuper() || (in_array($section, ['internal', 'shares'], true) && self::check())) {
             return self::MANAGE;
         }
         if (self::$perms === null) {

@@ -22,6 +22,7 @@ $nav = [
         ['finance', 'پرداخت‌ها و اقساط', 'bi-cash-coin', 'finance', $overdue],
         ['support', 'پشتیبانی و تیکت', 'bi-headset', 'support', $openTickets],
         ['internal', 'تیکت داخلی', 'bi-chat-square-text', 'internal', $internalPending],
+        ['shares', 'سهم من', 'bi-pie-chart', 'shares', 0],
     ]],
     ['تحلیل و تنظیمات', [
         ['reports', 'گزارش‌ها', 'bi-graph-up-arrow', 'reports', 0],
@@ -30,7 +31,7 @@ $nav = [
         ['settings', 'تنظیمات', 'bi-gear', '__super__', 0],
     ]],
 ];
-$notifIcon = ['payment_due' => ['bi-alarm', 'g-blue'], 'payment_overdue' => ['bi-exclamation-octagon', 'g-orange'], 'support_ending' => ['bi-hourglass-split', 'g-teal'], 'internal_ticket' => ['bi-chat-square-text', 'g-blue']];
+$notifIcon = ['payment_due' => ['bi-alarm', 'g-blue'], 'payment_overdue' => ['bi-exclamation-octagon', 'g-orange'], 'support_ending' => ['bi-hourglass-split', 'g-teal'], 'internal_ticket' => ['bi-chat-square-text', 'g-blue'], 'share' => ['bi-pie-chart', 'g-teal']];
 ?>
 <!doctype html>
 <html lang="fa" dir="rtl" data-bs-theme="dark">
