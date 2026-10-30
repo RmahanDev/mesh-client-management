@@ -1,0 +1,8 @@
+/config/config.php
+/storage/uploads/*
+!/storage/uploads/index.php
+/_old/
+*.zip
+*.log
+.DS_Store
+Thumbs.db

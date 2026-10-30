@@ -1,0 +1,8 @@
+Options -Indexes
+DirectoryIndex index.php
+
+<FilesMatch "\.(sql|md|log|ini|lock)$">
+    Require all denied
+</FilesMatch>
+
+AddType application/manifest+json .webmanifest

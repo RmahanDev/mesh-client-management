@@ -1,0 +1,17 @@
+{
+  "name": "مدیریت مش",
+  "short_name": "مدیریت مش",
+  "description": "مدیریت مشتری، پرداخت و پشتیبانی",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "index.php?r=dashboard",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#151f33",
+  "theme_color": "#151f33",
+  "icons": [
+    { "src": "assets/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
