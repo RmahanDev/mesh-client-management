@@ -12,5 +12,6 @@ if (!is_file(APP_ROOT . '/config/config.php')) {
 }
 
 require APP_ROOT . '/app/bootstrap.php';
+App\Core\Migrator::run();
 
 App\Core\Router::dispatch($_GET['r'] ?? 'dashboard');

@@ -567,3 +567,7 @@ input.jdate { direction: ltr; text-align: right; cursor: pointer; }
     .card-header { flex-wrap: wrap; }
 }
 .card-header .btn { white-space: nowrap; }
+
+.share-rows select { min-width: 110px; }
+.share-rows input { min-width: 64px; }
+.share-rows td { padding-inline: .35rem; }

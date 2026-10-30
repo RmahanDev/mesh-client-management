@@ -334,7 +334,7 @@ $kindLabel = ['single' => 'یک‌جا', 'stage' => 'مرحله', 'prepayment' =
                     <input type="hidden" name="project_id" value="<?= $p['id'] ?>">
                     <div class="table-responsive"><table class="table align-middle mb-2">
                         <thead><tr><th>ادمین</th><th style="width:140px">درصد</th><th>مبلغ سهم</th><th style="width:50px"></th></tr></thead>
-                        <tbody id="shareRows">
+                        <tbody id="shareRows" class="share-rows">
                         <?php foreach ($sh['rows'] as $r): ?>
                             <tr><td><select name="admin_id[]" class="form-select" <?= $canShM ? '' : 'disabled' ?>><?php foreach ($shareAdmins as $a): ?><option value="<?= $a['id'] ?>" <?= $a['id'] == $r['admin_id'] ? 'selected' : '' ?>><?= e($a['name']) ?></option><?php endforeach; ?></select></td>
                                 <td><input type="text" name="percent[]" class="form-control ltr" inputmode="decimal" value="<?= e(rtrim(rtrim(number_format((float)$r['percent'], 2, '.', ''), '0'), '.')) ?>" data-share-pct <?= $canShM ? '' : 'readonly' ?>></td>
@@ -355,7 +355,7 @@ $kindLabel = ['single' => 'یک‌جا', 'stage' => 'مرحله', 'prepayment' =
                     <td><input type="text" name="percent[]" class="form-control ltr" inputmode="decimal" data-share-pct></td><td class="fw-semibold text-success text-nowrap" data-share-amt>۰</td>
                     <td><button type="button" class="btn btn-sm btn-soft-danger btn-icon" data-rm-share><i class="bi bi-x-lg"></i></button></td></tr></template>
                 <script>
-                (function () {
+                document.addEventListener('DOMContentLoaded', function () {
                     const base = <?= (int)$sh['base'] ?>, box = document.getElementById('shareRows'), sum = document.querySelector('[data-share-sum]');
                     function calc() {
                         let t = 0;
@@ -372,7 +372,7 @@ $kindLabel = ['single' => 'یک‌جا', 'stage' => 'مرحله', 'prepayment' =
                         if (e.target.closest('[data-rm-share]')) { e.target.closest('tr').remove(); calc(); }
                     });
                     calc();
-                })();
+                });
                 </script>
             </div>
             <?php endif; ?>
