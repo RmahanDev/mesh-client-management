@@ -27,7 +27,6 @@ $nav = [
     ['تحلیل و تنظیمات', [
         ['reports', 'گزارش‌ها', 'bi-graph-up-arrow', 'reports', 0],
         ['categories', 'دسته‌بندی‌ها', 'bi-tags', 'categories', 0],
-        ['admins', 'ادمین‌ها و دسترسی', 'bi-shield-check', '__super__', 0],
         ['settings', 'تنظیمات', 'bi-gear', '__super__', 0],
     ]],
 ];

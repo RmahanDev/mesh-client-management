@@ -13,13 +13,20 @@ class AdminsController extends Controller
     public function index(): void
     {
         $this->requireSuper();
-        $admins = DB::all('SELECT a.id, a.name, a.username, a.mobile, a.department_id, d.name AS dept_name, a.is_super, is_active, a.last_login_at, a.created_at FROM admins a LEFT JOIN departments d ON d.id = a.department_id ORDER BY a.is_super DESC, a.id');
+        redirect('settings', ['tab' => 'admins']);
+    }
+
+    /** داده‌های لازم برای نمایش مدیریت ادمین‌ها (در صفحه تنظیمات) */
+    public function data(): array
+    {
+        $this->requireSuper();
+        $admins = DB::all('SELECT a.id, a.name, a.username, a.mobile, a.department_id, d.name AS dept_name, a.is_super, a.is_active, a.last_login_at, a.created_at FROM admins a LEFT JOIN departments d ON d.id = a.department_id ORDER BY a.is_super DESC, a.id');
         $perms = [];
         foreach (DB::all('SELECT * FROM admin_permissions') as $p) {
             $perms[$p['admin_id']][$p['section']] = (int)$p['level'];
         }
-        $this->render('admins/index', ['title' => 'ادمین‌ها و دسترسی‌ها', 'admins' => $admins, 'perms' => $perms,
-            'departments' => DB::all('SELECT d.*, (SELECT COUNT(*) FROM admins a WHERE a.department_id = d.id) AS members FROM departments d ORDER BY sort_order, id')]);
+        return ['admins' => $admins, 'perms' => $perms,
+            'departments' => DB::all('SELECT d.*, (SELECT COUNT(*) FROM admins a WHERE a.department_id = d.id) AS members FROM departments d ORDER BY sort_order, id')];
     }
 
     public function save(): void
