@@ -571,3 +571,11 @@ input.jdate { direction: ltr; text-align: right; cursor: pointer; }
 .share-rows select { min-width: 110px; }
 .share-rows input { min-width: 64px; }
 .share-rows td { padding-inline: .35rem; }
+
+/* کارت آماری تمام‌عرض (جمع سهم من در داشبورد) */
+.stat-card-wide { align-items: center; gap: 1rem; flex-wrap: wrap; text-decoration: none; }
+.stat-card-wide .stat-value { margin-top: 0; word-break: break-word; }
+.stat-card-wide .stat-wide-body { flex: 1 1 160px; min-width: 0; }
+.stat-card-wide .stat-wide-go { margin-inline-start: auto; font-size: .85rem; color: var(--mm-muted); white-space: nowrap; }
+@media (max-width: 575.98px) { .stat-card-wide .stat-wide-go { display: none; } }
+.stat-card-wide .stat-icon { flex-shrink: 0; }
