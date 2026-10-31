@@ -32,7 +32,7 @@ $greet = $hour < 12 ? 'صبح بخیر' : ($hour < 17 ? 'روز بخیر' : 'ع�
 </div>
 
 <?php $myShares = \App\Models\Project::sharesOf((int)Auth::id()); if ($myShares): ?>
-<div class="row g-3 mb-3"><div class="col-md-6 col-xl-4"><a href="<?= url('shares') ?>" class="stat-card d-block text-success"><span class="stat-icon g-teal"><i class="bi bi-pie-chart"></i></span><div class="stat-value text-body"><?= money(array_sum(array_column($myShares, 'amount')), false) ?></div><div class="stat-label">جمع سهم من از <?= fa_digits(count($myShares)) ?> پروژه (تومان)</div></a></div></div>
+<div class="row g-3 mb-3"><div class="col-12"><a href="<?= url('shares') ?>" class="stat-card d-block text-success"><span class="stat-icon g-teal"><i class="bi bi-pie-chart"></i></span><div class="stat-value text-body"><?= money(array_sum(array_column($myShares, 'amount')), false) ?></div><div class="stat-label">جمع سهم من از <?= fa_digits(count($myShares)) ?> پروژه (تومان)</div></a></div></div>
 <?php endif; ?>
 <?php $itInbox = \App\Models\InternalTicket::inbox(5); if ($itInbox): ?>
 <div class="card mb-3">
