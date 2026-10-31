@@ -579,3 +579,6 @@ input.jdate { direction: ltr; text-align: right; cursor: pointer; }
 .stat-card-wide .stat-wide-go { margin-inline-start: auto; font-size: .85rem; color: var(--mm-muted); white-space: nowrap; }
 @media (max-width: 575.98px) { .stat-card-wide .stat-wide-go { display: none; } }
 .stat-card-wide .stat-icon { flex-shrink: 0; }
+
+.mm-brand-logo svg { width: 64%; height: 64%; display: block; }
+.mm-brand-logo { flex-shrink: 0; }

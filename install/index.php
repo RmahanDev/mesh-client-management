@@ -144,7 +144,7 @@ $base = rtrim(str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME'] ?? 
 <body>
 <div class="container py-4" style="max-width:760px">
     <div class="text-center mb-4">
-        <span class="mm-brand-logo d-inline-grid mb-2" style="width:56px;height:56px;font-size:1.6rem"><i class="bi bi-hexagon-half"></i></span>
+        <span class="mm-brand-logo d-inline-grid mb-2" style="width:56px;height:56px;font-size:1.6rem"><svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true"><path d="M18 44V20l14 14 14-14v24" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         <h1 class="h3 fw-black">نصب مدیریت مش</h1>
         <div class="text-muted">اطلاعات دیتابیس و مدیر کل را وارد کنید؛ بقیه کارها خودکار انجام می‌شود.</div>
     </div>

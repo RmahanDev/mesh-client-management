@@ -41,7 +41,7 @@ $notifIcon = ['payment_due' => ['bi-alarm', 'g-blue'], 'payment_overdue' => ['bi
 <body>
 <aside class="mm-sidebar">
     <a href="<?= url('dashboard') ?>" class="mm-brand">
-        <span class="mm-brand-logo"><i class="bi bi-hexagon-half"></i></span>
+        <span class="mm-brand-logo"><svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true"><path d="M18 44V20l14 14 14-14v24" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         <span>
             <span class="mm-brand-name d-block"><?= e(\App\Core\Settings::get('company_name', config('app_name'))) ?></span>
             <span class="mm-brand-sub">مدیریت مشتری، پرداخت و پشتیبانی</span>
