@@ -1,7 +1,8 @@
 <?php defined('APP_ROOT') or exit;
 use App\Core\Auth;
 $canFinance = Auth::canManage('finance');
-$defSupport = (int)\App\Core\Settings::get('default_support_months', 3); ?>
+$defSupport = (int)\App\Core\Settings::get('default_support_months', 3);
+$shareAdmins = \App\Core\DB::all('SELECT id, name FROM admins WHERE is_active = 1 ORDER BY name'); ?>
 <div class="modal fade" id="projectCreateModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -84,6 +85,22 @@ $defSupport = (int)\App\Core\Settings::get('default_support_months', 3); ?>
                         <div id="expList" data-template="expTpl" data-reset-html></div>
                         <div class="small text-muted">مثل هاست، دامنه، قالب، افزونه، لایسنس، دستمزد همکار و ... (بعداً هم قابل اضافه است)</div>
                     </div>
+
+                    <div class="section-box mb-3">
+                        <div class="section-box-title justify-content-between">
+                            <span><i class="bi bi-pie-chart text-success"></i> سهم‌بندی سود پروژه</span>
+                            <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" name="profit_sharing" value="1" id="newShEnable" data-toggle-box="#newShBox"><label class="form-check-label small" for="newShEnable">فعال</label></div>
+                        </div>
+                        <div id="newShBox" class="d-none">
+                            <div class="small text-muted mb-2">سهم هر نفر از «سود = دریافتی − هزینه ابزارها» حساب می‌شود. فقط ادمین‌ها را می‌توان انتخاب کرد.</div>
+                            <div id="newShList" data-template="newShTpl" data-reset-html></div>
+                            <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mt-2">
+                                <button type="button" class="btn btn-sm btn-soft-primary" data-repeater-add="#newShList"><i class="bi bi-plus-lg"></i> افزودن نفر</button>
+                                <div class="small" data-new-sh-sum></div>
+                            </div>
+                            <div class="small text-muted mt-1">مبلغ‌های کنار هر درصد برآورد است: با فرض دریافت کامل مبلغ پروژه و کسر هزینه‌های بالا.</div>
+                        </div>
+                    </div>
                     <?php endif; ?>
 
                     <div class="section-box">
@@ -99,6 +116,39 @@ $defSupport = (int)\App\Core\Settings::get('default_support_months', 3); ?>
         </div>
     </div>
 </div>
+<template id="newShTpl">
+    <div class="row g-2 mb-2 repeater-row align-items-center">
+        <div class="col-6 col-md-5"><select name="share_admin[]" class="form-select form-select-sm"><option value="">انتخاب ادمین...</option><?php foreach ($shareAdmins as $a): ?><option value="<?= $a['id'] ?>"><?= e($a['name']) ?></option><?php endforeach; ?></select></div>
+        <div class="col-4 col-md-2"><input type="text" name="share_percent[]" class="form-control form-control-sm ltr" inputmode="decimal" placeholder="درصد" data-new-sh-pct></div>
+        <div class="col-8 col-md-4 small fw-semibold text-success" data-new-sh-amt></div>
+        <div class="col-4 col-md-1 text-start"><button type="button" class="btn btn-sm btn-soft-danger btn-icon" data-repeater-remove><i class="bi bi-x"></i></button></div>
+    </div>
+</template>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('projectCreateForm');
+    if (!form || !form.querySelector('#newShList')) return;
+    function profit() {
+        const total = MM.parseMoney(form.querySelector('[name=total_amount]').value);
+        let exp = 0; form.querySelectorAll('[name="exp_amount[]"]').forEach(i => exp += MM.parseMoney(i.value));
+        return Math.max(0, total - exp);
+    }
+    function calc() {
+        const base = profit(); let t = 0;
+        form.querySelectorAll('#newShList .repeater-row').forEach(r => {
+            const v = parseFloat(MM.en(r.querySelector('[data-new-sh-pct]').value).replace('٫', '.')) || 0;
+            t += v;
+            r.querySelector('[data-new-sh-amt]').textContent = v ? '≈ ' + MM.money(Math.floor(base * v / 100)) : '';
+        });
+        const s = form.querySelector('[data-new-sh-sum]');
+        s.textContent = t ? 'جمع درصدها: ' + MM.fa(Math.round(t * 100) / 100) + '٪' : '';
+        s.className = 'small ' + (t > 100.001 ? 'text-danger' : 'text-muted');
+    }
+    form.addEventListener('input', calc);
+    form.addEventListener('click', () => setTimeout(calc, 0));
+    form.addEventListener('mm:filled', () => { form.querySelector('#newShBox').classList.toggle('d-none', !form.querySelector('#newShEnable').checked); calc(); });
+});
+</script>
 <template id="expTpl">
     <div class="row g-2 mb-2 repeater-row">
         <div class="col-md-6"><input type="text" name="exp_title[]" class="form-control form-control-sm" placeholder="عنوان هزینه / ابزار"></div>

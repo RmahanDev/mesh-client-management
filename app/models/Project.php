@@ -122,4 +122,60 @@ class Project
         }
         return $rows;
     }
+
+    /** اعتبارسنجی ورودی سهم‌ها [admin_id[] , percent[]] → [admin_id => percent]؛ در خطا InvalidArgumentException */
+    public static function parseShares(array $ids, array $pcs): array
+    {
+        $new = [];
+        foreach ($ids as $i => $aid) {
+            $aid = (int)$aid;
+            $pc = round((float)str_replace(['٫', ','], '.', to_en_digits((string)($pcs[$i] ?? '0'))), 2);
+            if (!$aid && $pc <= 0) {
+                continue;
+            }
+            if (!$aid) {
+                throw new \InvalidArgumentException('برای هر درصد یک ادمین انتخاب کنید');
+            }
+            if ($pc <= 0 || $pc > 100) {
+                throw new \InvalidArgumentException('درصد هر نفر باید بین ۰ تا ۱۰۰ باشد');
+            }
+            if (isset($new[$aid])) {
+                throw new \InvalidArgumentException('یک ادمین فقط یک بار می‌تواند در سهم‌بندی باشد');
+            }
+            if (!DB::value('SELECT id FROM admins WHERE id = ? AND is_active = 1', [$aid])) {
+                throw new \InvalidArgumentException('ادمین انتخاب‌شده معتبر یا فعال نیست');
+            }
+            $new[$aid] = $pc;
+        }
+        if (round(array_sum($new), 2) > 100) {
+            throw new \InvalidArgumentException('جمع درصدها نمی‌تواند بیشتر از ۱۰۰ باشد');
+        }
+        return $new;
+    }
+
+    /** جایگزینی سهم‌های پروژه؛ خروجی: [admin_id => درصد قبلی] برای اعلان */
+    public static function replaceShares(int $projectId, array $new): array
+    {
+        $old = [];
+        foreach (DB::all('SELECT admin_id, percent FROM project_shares WHERE project_id = ?', [$projectId]) as $r) {
+            $old[(int)$r['admin_id']] = (float)$r['percent'];
+        }
+        DB::delete('project_shares', 'project_id = ?', [$projectId]);
+        foreach ($new as $aid => $pc) {
+            DB::insert('project_shares', ['project_id' => $projectId, 'admin_id' => $aid, 'percent' => $pc, 'created_at' => now()]);
+        }
+        return $old;
+    }
+
+    /** اعلان به ادمین‌هایی که سهمشان ثبت یا تغییر کرده است */
+    public static function notifyShares(array $project, array $new, array $old, ?int $actorId): void
+    {
+        foreach ($new as $aid => $pc) {
+            if ($aid !== $actorId && (!isset($old[$aid]) || abs($old[$aid] - $pc) > 0.001)) {
+                \App\Core\Notifier::add('share', 'shares', 'project', (int)$project['id'], "sh:{$project['id']}:{$aid}:" . (string)$pc,
+                    'سهم شما از پروژه «' . $project['title'] . '» ثبت شد',
+                    'سهم شما: ' . rtrim(rtrim(number_format($pc, 2), '0'), '.') . '٪ از سود پروژه', url('shares'), $aid);
+            }
+        }
+    }
 }

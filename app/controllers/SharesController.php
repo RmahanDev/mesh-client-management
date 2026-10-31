@@ -45,48 +45,13 @@ class SharesController extends Controller
             json_error('برای سهم‌بندی دسترسی به بخش مالی لازم است', 403);
         }
         $p = $this->findOr404('projects', input_int('project_id'));
-        $ids = (array)($_POST['admin_id'] ?? []);
-        $pcs = (array)($_POST['percent'] ?? []);
-        $new = [];
-        foreach ($ids as $i => $aid) {
-            $aid = (int)$aid;
-            $pc = round((float)str_replace(['٫', ','], '.', to_en_digits((string)($pcs[$i] ?? '0'))), 2);
-            if (!$aid && $pc <= 0) {
-                continue;
-            }
-            if (!$aid) {
-                json_error('برای هر درصد یک ادمین انتخاب کنید');
-            }
-            if ($pc <= 0 || $pc > 100) {
-                json_error('درصد هر نفر باید بین ۰ تا ۱۰۰ باشد');
-            }
-            if (isset($new[$aid])) {
-                json_error('یک ادمین فقط یک بار می‌تواند در سهم‌بندی باشد');
-            }
-            if (!DB::value('SELECT id FROM admins WHERE id = ? AND is_active = 1', [$aid])) {
-                json_error('ادمین انتخاب‌شده معتبر یا فعال نیست');
-            }
-            $new[$aid] = $pc;
+        try {
+            $new = Project::parseShares((array)($_POST['admin_id'] ?? []), (array)($_POST['percent'] ?? []));
+        } catch (\InvalidArgumentException $e) {
+            json_error($e->getMessage());
         }
-        if (round(array_sum($new), 2) > 100) {
-            json_error('جمع درصدها نمی‌تواند بیشتر از ۱۰۰ باشد');
-        }
-        $old = [];
-        foreach (DB::all('SELECT admin_id, percent FROM project_shares WHERE project_id = ?', [$p['id']]) as $r) {
-            $old[(int)$r['admin_id']] = (float)$r['percent'];
-        }
-        DB::transaction(function () use ($p, $new) {
-            DB::delete('project_shares', 'project_id = ?', [$p['id']]);
-            foreach ($new as $aid => $pc) {
-                DB::insert('project_shares', ['project_id' => $p['id'], 'admin_id' => $aid, 'percent' => $pc, 'created_at' => now()]);
-            }
-        });
-        foreach ($new as $aid => $pc) {
-            if ($aid !== Auth::id() && (!isset($old[$aid]) || abs($old[$aid] - $pc) > 0.001)) {
-                Notifier::add('share', 'shares', 'project', (int)$p['id'], "sh:{$p['id']}:{$aid}:" . (string)$pc, 'سهم شما از پروژه «' . $p['title'] . '» ثبت شد',
-                    'سهم شما: ' . rtrim(rtrim(number_format($pc, 2), '0'), '.') . '٪ از سود پروژه', url('shares'), $aid);
-            }
-        }
+        $old = DB::transaction(fn() => Project::replaceShares((int)$p['id'], $new));
+        Project::notifyShares($p, $new, $old, Auth::id());
         json_ok('سهم‌بندی ذخیره شد', ['redirect' => url('projects/show', ['id' => $p['id'], 'tab' => 'shares'])]);
     }
 }

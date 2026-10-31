@@ -119,9 +119,22 @@ class ProjectsController extends Controller
             json_error('نام ضامن را وارد کنید', 422, ['errors' => ['guarantor_name' => 'الزامی']]);
         }
 
-        $id = DB::transaction(function () use ($data, $schedule, $type, $canFinance) {
+        $shares = [];
+        if (input('profit_sharing') && Auth::can('finance')) {
+            try {
+                $shares = Project::parseShares((array)($_POST['share_admin'] ?? []), (array)($_POST['share_percent'] ?? []));
+            } catch (\InvalidArgumentException $e) {
+                json_error($e->getMessage());
+            }
+            $data['profit_sharing'] = 1;
+        }
+
+        $id = DB::transaction(function () use ($data, $schedule, $type, $canFinance, $shares) {
             $id = DB::insert('projects', $data + ['created_by' => Auth::id(), 'created_at' => now()]);
             $this->syncCategories($id);
+            if ($shares) {
+                Project::replaceShares($id, $shares);
+            }
             if (!$canFinance) {
                 return $id;
             }
@@ -162,6 +175,9 @@ class ProjectsController extends Controller
             }
             return $id;
         });
+        if ($shares) {
+            Project::notifyShares(['id' => $id, 'title' => $data['title']], $shares, [], Auth::id());
+        }
         Project::recalcSupport($id);
         Upload::saveMany('files', 'project', $id);
         $this->log('create', 'project', $id, $data['title']);
